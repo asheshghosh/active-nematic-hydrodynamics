@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Active Nematic Hydrodynamics</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [["\\(", "\\)"]],
+          displayMath: [["\\[", "\\]"]],
+        },
+        svg: {
+          fontCache: "global",
+        },
+      };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="sim-panel" aria-label="Active nematic simulator">
+        <div class="canvas-stack">
+          <canvas id="field" width="112" height="112"></canvas>
+          <div class="diagnostics">
+            <canvas id="history" width="720" height="180" aria-label="Energy and defect history"></canvas>
+            <canvas id="pressure" width="112" height="112" aria-label="Instantaneous pressure field"></canvas>
+          </div>
+        </div>
+        <div class="hud">
+          <div>
+            <span class="label">steps</span>
+            <span id="steps">0</span>
+          </div>
+          <div>
+            <span class="label">defects + / -</span>
+            <span id="defects">0</span>
+          </div>
+          <div>
+            <span class="label">energy</span>
+            <span id="energy">0.000</span>
+          </div>
+        </div>
+      </section>
+
+      <aside class="controls" aria-label="Simulation controls">
+        <header>
+          <p class="eyebrow">2D Q-tensor fluid</p>
+          <h1>Active nematic hydrodynamics</h1>
+          <a class="mode-link" href="fem.html">Open FEM version</a>
+        </header>
+
+        <div class="button-row">
+          <button id="toggle" type="button">Pause</button>
+          <button id="kick" type="button">Kick</button>
+          <button id="reset" type="button">Reset</button>
+        </div>
+
+        <div class="control-group">
+          <label for="gridSize">
+            <span>Grid cells per side</span>
+            <output id="gridSizeValue">112 x 112</output>
+          </label>
+          <input id="gridSize" type="range" min="48" max="1024" step="16" value="112" />
+        </div>
+
+        <fieldset>
+          <legend>Activity</legend>
+          <label class="check">
+            <input id="activityEnabled" type="checkbox" checked />
+            <span>Active forcing</span>
+          </label>
+          <div class="segmented" role="group" aria-label="Activity type">
+            <label>
+              <input type="radio" name="activityType" value="extensile" checked />
+              <span>Extensile</span>
+            </label>
+            <label>
+              <input type="radio" name="activityType" value="contractile" />
+              <span>Contractile</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="control-group">
+          <label for="activity">
+            <span>Activity magnitude</span>
+            <output id="activityValue">0.70</output>
+          </label>
+          <input id="activity" type="range" min="0" max="1.5" step="0.01" value="0.70" />
+        </div>
+
+        <div class="control-group">
+          <label for="elastic">
+            <span>Elasticity K</span>
+            <output id="elasticValue">0.23</output>
+          </label>
+          <input id="elastic" type="range" min="0.04" max="0.60" step="0.01" value="0.23" />
+        </div>
+
+        <div class="control-group">
+          <label for="viscosity">
+            <span>Viscosity</span>
+            <output id="viscosityValue">0.24</output>
+          </label>
+          <input id="viscosity" type="range" min="0.02" max="0.80" step="0.01" value="0.24" />
+        </div>
+
+        <fieldset>
+          <legend>Momentum</legend>
+          <label class="check">
+            <input id="momentumAdvection" type="checkbox" checked />
+            <span>Nonlinear advection</span>
+          </label>
+        </fieldset>
+
+        <div class="control-group">
+          <label for="friction">
+            <span>Friction alpha</span>
+            <output id="frictionValue">0.055</output>
+          </label>
+          <input id="friction" type="range" min="0" max="0.25" step="0.005" value="0.055" />
+        </div>
+
+        <div class="control-group">
+          <label for="alignment">
+            <span>Flow alignment</span>
+            <output id="alignmentValue">0.62</output>
+          </label>
+          <input id="alignment" type="range" min="-1.20" max="1.20" step="0.01" value="0.62" />
+        </div>
+
+        <div class="control-group">
+          <label for="noise">
+            <span>Noise</span>
+            <output id="noiseValue">0.09</output>
+          </label>
+          <input id="noise" type="range" min="0" max="0.35" step="0.01" value="0.09" />
+        </div>
+
+        <fieldset>
+          <legend>Render</legend>
+          <label class="check">
+            <input id="showDirectors" type="checkbox" checked />
+            <span>Directors</span>
+          </label>
+          <div class="segmented director-mode" role="group" aria-label="Director render mode">
+            <label>
+              <input type="radio" name="directorMode" value="rods" />
+              <span>Rods</span>
+            </label>
+            <label>
+              <input type="radio" name="directorMode" value="streamlines" checked />
+              <span>Lines</span>
+            </label>
+            <label>
+              <input type="radio" name="directorMode" value="stencil" />
+              <span>Stencil</span>
+            </label>
+          </div>
+          <label class="check">
+            <input id="showVelocity" type="checkbox" checked />
+            <span>Velocity</span>
+          </label>
+          <label class="check">
+            <input id="showDefects" type="checkbox" checked />
+            <span>Defects</span>
+          </label>
+          <label class="check">
+            <input id="showPressure" type="checkbox" checked />
+            <span>Pressure plot</span>
+          </label>
+        </fieldset>
+
+        <section class="notes" aria-label="Model notes">
+          <h2>Equations</h2>
+          <div class="equations">
+            <div class="equation">
+              \[
+                \mathbf Q =
+                \begin{pmatrix}
+                  q_{xx} & q_{xy} \\
+                  q_{xy} & -q_{xx}
+                \end{pmatrix}
+              \]
+            </div>
+            <div class="equation">
+              \[
+                \mathbf H =
+                K \nabla^2 \mathbf Q
+                + a\left(S_0^2 - |\mathbf Q|^2\right)\mathbf Q
+              \]
+            </div>
+            <div class="equation">
+              \[
+                \partial_t \mathbf Q
+                + \mathbf u \cdot \nabla \mathbf Q
+                =
+                \Gamma \mathbf H
+                + [\mathbf \Omega, \mathbf Q]
+                + \lambda \mathbf E
+                + \boldsymbol\xi
+              \]
+            </div>
+            <div class="equation">
+              \[
+                \partial_t \mathbf u
+                + \mathbf u \cdot \nabla \mathbf u
+                =
+                -\nabla p
+                + \eta \nabla^2 \mathbf u
+                - \alpha \mathbf u
+                - \zeta \nabla \cdot \mathbf Q
+              \]
+            </div>
+            <div class="equation">
+              \[
+                \nabla \cdot \mathbf u = 0,
+                \qquad
+                \mathbf x \in \mathbb T^2
+              \]
+            </div>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <script src="sim.js"></script>
+  </body>
+</html>
