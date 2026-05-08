@@ -12,13 +12,13 @@ There are two versions:
 
 The state is a planar nematic $Q$ tensor:
 
-$$
+$
 \mathbf Q =
 \begin{pmatrix}
 q_{xx} & q_{xy} \\
 q_{xy} & -q_{xx}
 \end{pmatrix}
-$$
+$
 
 The molecular field is approximated as:
 
