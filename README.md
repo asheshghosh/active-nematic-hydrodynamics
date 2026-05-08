@@ -22,7 +22,8 @@ The FEM version is available at:
 [https://asheshghosh.github.io/active-nematic-hydrodynamics/fem.html](https://asheshghosh.github.io/active-nematic-hydrodynamics/fem.html)
 
 To enable Pages in GitHub: go to repository `Settings` -> `Pages`, set source to
-`Deploy from a branch`, choose branch `main`, folder `/ (root)`, and save.
+`GitHub Actions`, and run the `Deploy GitHub Pages` workflow if it does not
+start automatically after a push.
 
 ## Run In Python
 
