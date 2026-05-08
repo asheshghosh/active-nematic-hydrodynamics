@@ -7,13 +7,49 @@ There are two versions:
 
 - `index.html`: finite-difference periodic-grid simulator.
 - `fem.html`: finite-element-inspired simulator on a periodic triangular P1 mesh.
+- `active_nematic.py`: Python reference simulator for command-line runs and
+  data export.
+
+## Run In The Browser
+
+Open `index.html` directly, or use GitHub Pages once it is enabled for this
+repository:
+
+[https://asheshghosh.github.io/active-nematic-hydrodynamics/](https://asheshghosh.github.io/active-nematic-hydrodynamics/)
+
+The FEM version is available at:
+
+[https://asheshghosh.github.io/active-nematic-hydrodynamics/fem.html](https://asheshghosh.github.io/active-nematic-hydrodynamics/fem.html)
+
+To enable Pages in GitHub: go to repository `Settings` -> `Pages`, set source to
+`Deploy from a branch`, choose branch `main`, folder `/ (root)`, and save.
+
+## Run In Python
+
+Install dependencies:
+
+```bash
+python3 -m pip install -r requirements.txt
+```
+
+Run a short simulation:
+
+```bash
+python3 active_nematic.py --grid 128 --steps 1000 --sample-every 10 --save-png
+```
+
+Outputs are written under `runs/active_nematic/`:
+
+- `history.csv`: step, energy density, positive defects, negative defects.
+- `final_state.npz`: final Q tensor, velocity, pressure, step, and energy.
+- `final_snapshot.png`: optional summary plot if `matplotlib` is installed.
 
 ## What It Simulates
 
 The state is a planar nematic $Q$ tensor:
 
 $$
-\mathbf{Q} =
+\mathbf Q =
 \begin{pmatrix}
 q_{xx} & q_{xy} \\
 q_{xy} & -q_{xx}
@@ -23,9 +59,9 @@ $$
 The molecular field is approximated as:
 
 $$
-\mathbf{H} =
-K \nabla^2 \mathbf{Q}
-+ a\left(S_0^2 - |\mathbf{Q}|^2\right)\mathbf{Q}
+\mathbf H =
+K \nabla^2 \mathbf Q
++ a\left(S_0^2 - |\mathbf Q|^2\right)\mathbf Q
 $$
 
 The nematic tensor evolves according to:
