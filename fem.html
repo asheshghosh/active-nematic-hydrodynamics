@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FEM Active Nematic Hydrodynamics</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [["\\(", "\\)"]],
+          displayMath: [["\\[", "\\]"]],
+        },
+        svg: {
+          fontCache: "global",
+        },
+      };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="sim-panel" aria-label="FEM active nematic simulator">
+        <div class="canvas-stack">
+          <canvas id="field" width="160" height="160"></canvas>
+          <div class="diagnostics">
+            <canvas id="history" width="720" height="180" aria-label="Energy and defect history"></canvas>
+            <canvas id="pressure" width="160" height="160" aria-label="Instantaneous pressure field"></canvas>
+          </div>
+        </div>
+        <div class="hud">
+          <div>
+            <span class="label">steps</span>
+            <span id="steps">0</span>
+          </div>
+          <div>
+            <span class="label">defects + / -</span>
+            <span id="defects">0 / 0</span>
+          </div>
+          <div>
+            <span class="label">energy</span>
+            <span id="energy">0.000</span>
+          </div>
+        </div>
+      </section>
+
+      <aside class="controls" aria-label="FEM simulation controls">
+        <header>
+          <p class="eyebrow">P1 triangular mesh</p>
+          <h1>FEM active nematic</h1>
+          <a class="mode-link" href="index.html">Open finite-difference version</a>
+        </header>
+
+        <div class="button-row">
+          <button id="toggle" type="button">Pause</button>
+          <button id="kick" type="button">Kick</button>
+          <button id="reset" type="button">Reset</button>
+        </div>
+
+        <div class="control-group">
+          <label for="meshSize">
+            <span>Mesh nodes per side</span>
+            <output id="meshSizeValue">80 x 80</output>
+          </label>
+          <input id="meshSize" type="range" min="24" max="256" step="8" value="80" />
+        </div>
+
+        <fieldset>
+          <legend>Activity</legend>
+          <label class="check">
+            <input id="activityEnabled" type="checkbox" checked />
+            <span>Active forcing</span>
+          </label>
+          <div class="segmented" role="group" aria-label="Activity type">
+            <label>
+              <input type="radio" name="activityType" value="extensile" checked />
+              <span>Extensile</span>
+            </label>
+            <label>
+              <input type="radio" name="activityType" value="contractile" />
+              <span>Contractile</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="control-group">
+          <label for="activity">
+            <span>Activity magnitude</span>
+            <output id="activityValue">0.55</output>
+          </label>
+          <input id="activity" type="range" min="0" max="1.4" step="0.01" value="0.55" />
+        </div>
+
+        <div class="control-group">
+          <label for="elastic">
+            <span>Elasticity K</span>
+            <output id="elasticValue">0.18</output>
+          </label>
+          <input id="elastic" type="range" min="0.03" max="0.60" step="0.01" value="0.18" />
+        </div>
+
+        <div class="control-group">
+          <label for="viscosity">
+            <span>Viscosity</span>
+            <output id="viscosityValue">0.22</output>
+          </label>
+          <input id="viscosity" type="range" min="0.02" max="0.80" step="0.01" value="0.22" />
+        </div>
+
+        <fieldset>
+          <legend>Momentum</legend>
+          <label class="check">
+            <input id="momentumAdvection" type="checkbox" checked />
+            <span>Nonlinear advection</span>
+          </label>
+        </fieldset>
+
+        <div class="control-group">
+          <label for="friction">
+            <span>Friction alpha</span>
+            <output id="frictionValue">0.060</output>
+          </label>
+          <input id="friction" type="range" min="0" max="0.25" step="0.005" value="0.060" />
+        </div>
+
+        <div class="control-group">
+          <label for="alignment">
+            <span>Flow alignment</span>
+            <output id="alignmentValue">0.55</output>
+          </label>
+          <input id="alignment" type="range" min="-1.20" max="1.20" step="0.01" value="0.55" />
+        </div>
+
+        <div class="control-group">
+          <label for="noise">
+            <span>Noise</span>
+            <output id="noiseValue">0.08</output>
+          </label>
+          <input id="noise" type="range" min="0" max="0.35" step="0.01" value="0.08" />
+        </div>
+
+        <fieldset>
+          <legend>Render</legend>
+          <label class="check">
+            <input id="showMesh" type="checkbox" />
+            <span>Mesh</span>
+          </label>
+          <label class="check">
+            <input id="showDirectors" type="checkbox" checked />
+            <span>Directors</span>
+          </label>
+          <label class="check">
+            <input id="showVelocity" type="checkbox" checked />
+            <span>Velocity</span>
+          </label>
+          <label class="check">
+            <input id="showDefects" type="checkbox" checked />
+            <span>Defects</span>
+          </label>
+          <label class="check">
+            <input id="showPressure" type="checkbox" checked />
+            <span>Pressure plot</span>
+          </label>
+        </fieldset>
+
+        <section class="notes" aria-label="FEM model notes">
+          <h2>Weak Form</h2>
+          <div class="equations">
+            <div class="equation">
+              \[
+                \int_{\Omega} \phi_i \partial_t \mathbf Q\,dA
+                =
+                -\int_{\Omega} \phi_i(\mathbf u \cdot \nabla)\mathbf Q\,dA
+                + \Gamma \int_{\Omega} \phi_i \mathbf H\,dA
+              \]
+            </div>
+            <div class="equation">
+              \[
+                \int_{\Omega}\nabla\phi_i \cdot \nabla \mathbf Q\,dA
+                \quad\hbox{and}\quad
+                \int_{\Omega}\nabla\phi_i \cdot \nabla \mathbf u\,dA
+              \]
+            </div>
+            <div class="equation">
+              \[
+                \partial_t \mathbf u + \mathbf u \cdot \nabla \mathbf u
+                =
+                -\nabla p + \eta \nabla^2\mathbf u
+                -\alpha\mathbf u-\zeta\nabla\cdot\mathbf Q
+              \]
+            </div>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <script src="fem.js"></script>
+  </body>
+</html>
