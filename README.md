@@ -13,7 +13,7 @@ There are two versions:
 The state is a planar nematic $Q$ tensor:
 
 $$
-\mathbf Q =
+\mathbf{Q} =
 \begin{pmatrix}
 q_{xx} & q_{xy} \\
 q_{xy} & -q_{xx}
@@ -23,9 +23,9 @@ $$
 The molecular field is approximated as:
 
 $$
-\mathbf H =
-K \nabla^2 \mathbf Q
-+ a\left(S_0^2 - |\mathbf Q|^2\right)\mathbf Q
+\mathbf{H} =
+K \nabla^2 \mathbf{Q}
++ a\left(S_0^2 - |\mathbf{Q}|^2\right)\mathbf{Q}
 $$
 
 The nematic tensor evolves according to:
